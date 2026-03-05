@@ -1,37 +1,51 @@
+
 <?php
-// 1. Database Connection Credentials [1]
+// 1. Database Connection Credentials
 $servername = "localhost";
-$username = "root"; // Default XAMPP username [1]
-$password = "";     // Default XAMPP password is empty [1]
+$username = "root"; // Default XAMPP username
+$password = "";     // Default XAMPP password is empty
 $dbname = "web_project_db";
 
-// 2. Create Connection [1]
+// 2. Create Connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// 3. Check Connection [1]
+// 3. Check Connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// 4. Handle Form Submission [1]
+// 4. Handle Form Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Sanitize and Collect Data [1]
+
+    // Sanitize and Collect Data
     $email = htmlspecialchars($_POST['email']);
-    $subject = htmlspecialchars($_POST['subject']); [2]
-    $message = htmlspecialchars($_POST['message']); [2]
+    $subject = htmlspecialchars($_POST['subject']);
+    $message = htmlspecialchars($_POST['message']);
 
-    // Prepare SQL Statement (Security: Prevents SQL Injection) [2]
+    // Extra validation (recommended for marks)
+    if (empty($email) || empty($subject) || empty($message)) {
+        die("All fields are required.");
+    }
+
+    // Prepare SQL Statement (Prevents SQL Injection)
     $stmt = $conn->prepare("INSERT INTO contact_messages (user_email, subject_line, message_text) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $email, $subject, $message); [2]
 
-    // Execute and Redirect [2], [3]
+    if ($stmt === false) {
+        die("Prepare failed: " . $conn->error);
+    }
+
+    $stmt->bind_param("sss", $email, $subject, $message);
+
+    // Execute and Redirect
     if ($stmt->execute()) {
         header("Location: success.html");
         exit();
     } else {
-        echo "Error: " . $stmt->error; [2]
+        echo "Error: " . $stmt->error;
     }
-    $stmt->close(); [4]
+
+    $stmt->close();
 }
-$conn->close(); [4]
+
+$conn->close();
 ?>
